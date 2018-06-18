@@ -44,6 +44,7 @@ var (
 type cluster struct {
 	ClusterName                 string  `json:"cluster_name"`
 	Status                      string  `json:"status"`
+	StatusInt                   int64   `json:"status_int"`
 	TimeOut                     bool    `json:"timed_out"`
 	NumberOfNodes               uint    `json:"number_of_nodes"`
 	NumberOfDataNodes           uint    `json:"number_of_data_nodes"`
@@ -92,6 +93,8 @@ func (esm *ESMetric) GetClusterData() (map[string]plugin.MetricType, error) {
 		return nil, err
 	}
 
+	v.StatusInt = toStatusInt(v.Status)
+
 	elem := reflect.ValueOf(v).Elem()
 	for i := 0; i < elem.NumField(); i++ {
 		ns := strings.Split(clusterNsPrefix, "/")
@@ -105,4 +108,14 @@ func (esm *ESMetric) GetClusterData() (map[string]plugin.MetricType, error) {
 		}
 	}
 	return mts, nil
+}
+
+func toStatusInt(status string) int64 {
+	if status == "green" {
+		return 2
+	} else if status == "yellow" {
+		return 1
+	} else {
+		return 0
+	}
 }
